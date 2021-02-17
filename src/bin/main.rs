@@ -1,15 +1,21 @@
 use bme280::BME280; // Also BMP280 compatible
 use error_chain::error_chain;
+use hyper::service::{self, Service};
+use hyper::{Body, Request, Response};
 use linux_embedded_hal::{Delay, I2cdev};
+use serde::Serialize;
+use serde_json;
+use std::cell::{RefCell, RefMut};
 use std::net::SocketAddr;
 use structopt::StructOpt;
-use tokio::net::TcpListener;
+
+error_chain! {}
+
+thread_local!(static SENSOR: RefCell<Option<BME280<I2cdev,Delay>>> = RefCell::new(None));
 
 fn parse_hex(src: &str) -> Result<u8> {
     Ok(u8::from_str_radix(src, 16).chain_err(|| "foo")?)
 }
-
-error_chain! {}
 
 #[derive(StructOpt)]
 #[structopt(about)]
@@ -27,27 +33,24 @@ struct Opt {
     socket: SocketAddr,
 }
 
+async fn measurement(_req: Request<Body>) -> Result<Response<Body>> {
+    let ret;
+    SENSOR.with(|tld| {
+        let sensor: Option<BME280<I2cdev, Delay>> = *tld.try_borrow_mut()?;
+        Ok(Response::new("foo".into()))
+    });
+    ret
+}
+
 #[tokio::main]
 async fn _main() -> Result<()> {
     let opt = Opt::from_args();
     let i2c_bus = I2cdev::new(opt.i2c_bus_path).chain_err(|| "Couldn't open i2c device")?;
     let mut sensor = BME280::new(i2c_bus, opt.i2c_address, Delay);
-    sensor.init().expect("Couldn't initialize device");
-    let listener = TcpListener::bind(opt.socket)
-        .await
-        .chain_err(|| "Couldn't bind to socket")?;
+    sensor.init().chain_err(|| "Couldn't initialize device")?;
 
-    loop {
-        let (socket, _) = listener
-            .accept()
-            .await
-            .chain_err(|| "Couldn't accept connection")?;
-    }
+    SENSOR.with(|tld| *tld.borrow_mut() = Some(sensor));
 
-    let measurements = sensor
-        .measure()
-        .chain_err(|| "Couldn't perform measurement");
-    println!("{:?}", measurements);
     Ok(())
 }
 
