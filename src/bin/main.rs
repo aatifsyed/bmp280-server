@@ -53,7 +53,7 @@ async fn handle_measurement(
 ) -> Result<Box<dyn warp::Reply>, warp::Rejection> {
     let mut sensor = sensor.lock().unwrap();
     match sensor.measure() {
-        Ok(measurement) => Ok(Box::new(format!("{:#?}", measurement))),
+        Ok(measurement) => Ok(Box::new(warp::reply::json(&measurement))),
         Err(err) => Ok(Box::new(format!("{:#?}", err))),
     }
 }

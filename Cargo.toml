@@ -10,8 +10,6 @@ edition = "2018"
 [dependencies]
 bme280 = { version = "0.2.1", features = ["serde"] }
 linux-embedded-hal = "0.3.0"
-serde = "1.0.123"
-serde_json = "1.0.62"
 structopt = "0.3.21"
 tokio = { version = "1.2.0", features=["macros", "net", "rt-multi-thread",] }
 warp = "0.3.0"

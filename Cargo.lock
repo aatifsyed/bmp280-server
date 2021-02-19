@@ -84,8 +84,6 @@ version = "0.1.0"
 dependencies = [
  "bme280",
  "linux-embedded-hal",
- "serde",
- "serde_json",
  "structopt",
  "tokio",
  "warp",
