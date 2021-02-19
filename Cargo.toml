@@ -1,6 +1,6 @@
 [package]
 name = "bmp280-server"
-description = "A thin server around a BMP280 or BME280 sensor, using the bmp280 crate. Sensor data will be served as JSON to HTTP GETs at /measurement"
+description = "A thin prometheus-friendly wrapper around a BMP280 or BME280 sensor, using the bmp280 crate."
 version = "0.1.0"
 authors = ["Aatif Syed <aatifsyedyp@gmail.com>"]
 edition = "2018"
@@ -10,6 +10,7 @@ edition = "2018"
 [dependencies]
 bme280 = { version = "0.2.1", features = ["serde"] }
 linux-embedded-hal = "0.3.0"
+serde_prometheus = "0.1.5"
 structopt = "0.3.21"
 tokio = { version = "1.2.0", features=["macros", "net", "rt-multi-thread",] }
 warp = "0.3.0"

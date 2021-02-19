@@ -1,5 +1,7 @@
 use bme280::BME280; // Also BMP280 compatible
 use linux_embedded_hal::{Delay, I2cdev};
+use serde_prometheus;
+use std::collections::HashMap;
 use std::error;
 use std::net::SocketAddr;
 use std::sync::{Arc, Mutex};
@@ -37,7 +39,7 @@ async fn main() -> Result<(), Box<dyn error::Error>> {
 
     let sensor = Arc::new(Mutex::new(sensor));
 
-    let route = warp::path("measurement")
+    let route = warp::path("metrics")
         .and(warp::get())
         // Give a copy of the sensor to each handler thread
         .and(warp::any().map(move || sensor.clone()))
@@ -53,7 +55,13 @@ async fn handle_measurement(
 ) -> Result<Box<dyn warp::Reply>, warp::Rejection> {
     let mut sensor = sensor.lock().unwrap();
     match sensor.measure() {
-        Ok(measurement) => Ok(Box::new(warp::reply::json(&measurement))),
-        Err(err) => Ok(Box::new(format!("{:#?}", err))),
+        Ok(measurement) => match serde_prometheus::to_string(&measurement, None, HashMap::new()) {
+            Ok(measurement) => Ok(Box::new(measurement)),
+            Err(err) => Ok(Box::new(format!(
+                "Couldn't serialize measurement: {:#?}",
+                err
+            ))),
+        },
+        Err(err) => Ok(Box::new(format!("Sensor returned error: {:#?}", err))),
     }
 }
