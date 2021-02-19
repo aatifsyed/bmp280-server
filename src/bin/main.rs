@@ -1,5 +1,6 @@
 use bme280::BME280; // Also BMP280 compatible
 use linux_embedded_hal::{Delay, I2cdev};
+use std::error;
 use std::net::SocketAddr;
 use std::sync::{Arc, Mutex};
 use structopt::StructOpt;
@@ -26,11 +27,13 @@ struct Opt {
 }
 
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
+async fn main() -> Result<(), Box<dyn error::Error>> {
     let opt = Opt::from_args();
     let i2c_bus = I2cdev::new(opt.i2c_bus_path)?;
     let mut sensor = BME280::new(i2c_bus, opt.i2c_address, Delay);
-    sensor.init()?;
+    sensor
+        .init()
+        .map_err(|error| format!("Couldn't initialize sensor: {:?}", error))?;
 
     let sensor = Arc::new(Mutex::new(sensor));
 

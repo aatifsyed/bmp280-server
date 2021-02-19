@@ -1,5 +1,6 @@
 [package]
 name = "bmp280-server"
+description = "A thin server around a BMP280 or BME280 sensor, using the bmp280 crate. Sensor data will be served as JSON to HTTP GETs at /measurement"
 version = "0.1.0"
 authors = ["Aatif Syed <aatifsyedyp@gmail.com>"]
 edition = "2018"
@@ -7,8 +8,7 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-bme280 = { git = "https://github.com/aatifsyed/bme280-rs", rev = "776fdaf", features = ["with-std", "serde"]}
-error-chain = "0.12.4"
+bme280 = { version = "0.2.1", features = ["serde"] }
 linux-embedded-hal = "0.3.0"
 serde = "1.0.123"
 serde_json = "1.0.62"
